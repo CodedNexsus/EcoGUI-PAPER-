@@ -7,8 +7,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import rohit.EcoGUI.Main;
@@ -64,7 +66,8 @@ public class SellGUIListener implements Listener {
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        String title = event.getView().getTitle();
+        InventoryView view = event.getView();
+        String title = view.getTitle();
         
         // Check if this is the sell GUI
         if (!title.equals(SELL_GUI_TITLE)) {
@@ -73,23 +76,64 @@ public class SellGUIListener implements Listener {
 
         Player player = (Player) event.getWhoClicked();
         int slot = event.getSlot();
+        Inventory clickedInventory = event.getClickedInventory();
 
-        // Allow clicking on slots 0-44 (item placement area) - don't cancel
-        if (slot >= 0 && slot < 45) {
-            // Allow item placement and movement freely
+        // If clicking on the GUI inventory (top inventory)
+        if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
+            // Allow clicks on slots 0-44 (item placement area)
+            if (slot >= 0 && slot < 45) {
+                // Allow item placement and movement freely
+                return;
+            }
+
+            // Cancel clicks on glass panels (slots 45-48 and 50-53)
+            if ((slot >= 45 && slot < 49) || (slot >= 50 && slot < 54)) {
+                event.setCancelled(true);
+                return;
+            }
+
+            // Handle close button click (slot 49)
+            if (slot == 49) {
+                event.setCancelled(true);
+                player.closeInventory();
+                return;
+            }
+        }
+
+        // If clicking on player inventory (bottom inventory), allow it
+        // This allows shift-clicking and dragging from player inventory to GUI
+        if (clickedInventory != null && clickedInventory.equals(view.getBottomInventory())) {
+            // Allow all clicks on player inventory
+            return;
+        }
+    }
+
+    /**
+     * Handle inventory drag event for sell GUI
+     */
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        String title = event.getView().getTitle();
+        
+        // Check if this is the sell GUI
+        if (!title.equals(SELL_GUI_TITLE)) {
             return;
         }
 
-        // Cancel clicks on glass panels (slots 45-48 and 50-53)
-        if ((slot >= 45 && slot < 49) || (slot >= 50 && slot < 54)) {
-            event.setCancelled(true);
-            return;
-        }
-
-        // Handle close button click (slot 49)
-        if (slot == 49) {
-            event.setCancelled(true);
-            player.closeInventory();
+        // Allow dragging items into slots 0-44 of the GUI
+        for (int slot : event.getRawSlots()) {
+            // If dragging into GUI inventory (slots 0-53)
+            if (slot < 54) {
+                // Allow dragging into slots 0-44
+                if (slot >= 0 && slot < 45) {
+                    return;
+                }
+                // Cancel dragging into glass panels and close button
+                if ((slot >= 45 && slot < 49) || (slot >= 50 && slot < 54) || slot == 49) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
         }
     }
 
