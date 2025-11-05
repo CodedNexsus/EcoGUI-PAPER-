@@ -12,9 +12,9 @@ public class SellGUICommand implements CommandExecutor {
     private Main plugin;
     private SellGUIListener sellGUIListener;
 
-    public SellGUICommand(Main plugin) {
+    public SellGUICommand(Main plugin, SellGUIListener sellGUIListener) {
         this.plugin = plugin;
-        this.sellGUIListener = new SellGUIListener(plugin);
+        this.sellGUIListener = sellGUIListener;
     }
 
     @Override

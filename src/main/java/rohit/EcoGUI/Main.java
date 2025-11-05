@@ -24,6 +24,7 @@ public class Main extends JavaPlugin {
     private ConfigManager configManager;
     private SectionManager sectionManager;
     private ShopManager shopManager;
+    private SellGUIListener sellGUIListener;
 
     @Override
     public void onEnable() {
@@ -38,8 +39,8 @@ public class Main extends JavaPlugin {
 
         if (setupEconomy()) {
             getLogger().info("✅ EcoGUI Enabled - Vault linked successfully (Economy provider: " + economy.getName() + ")");
-            registerCommands();
             registerListeners();
+            registerCommands();
         } else {
             getLogger().warning("⚠️ EcoGUI Enabled - Vault not found or no Economy provider available");
         }
@@ -62,6 +63,12 @@ public class Main extends JavaPlugin {
         return economy != null;
     }
 
+    private void registerListeners() {
+        Bukkit.getPluginManager().registerEvents(new InventoryListener(this), this);
+        sellGUIListener = new SellGUIListener(this);
+        Bukkit.getPluginManager().registerEvents(sellGUIListener, this);
+    }
+
     private void registerCommands() {
         getCommand("shop").setExecutor(new ShopCommand(economy, this));
         getCommand("rshop").setExecutor(new ReloadCommand(this));
@@ -70,12 +77,7 @@ public class Main extends JavaPlugin {
         getCommand("aitem").setExecutor(new AddItemCommand(this));
         getCommand("sell").setExecutor(new SellCommand(this));
         getCommand("sellall").setExecutor(new SellAllCommand(this));
-        getCommand("sellgui").setExecutor(new SellGUICommand(this));
-    }
-
-    private void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(new InventoryListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new SellGUIListener(this), this);
+        getCommand("sellgui").setExecutor(new SellGUICommand(this, sellGUIListener));
     }
 
     public Economy getEconomy() {

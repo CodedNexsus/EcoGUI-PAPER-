@@ -1,4 +1,3 @@
-/EconomyShopGUI/src/main/java/rohit/EconomyshopGUI/App.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/shop/ShopManager.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/commands/ReloadCommand.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/inventory/ShopInventoryHolder.java
@@ -6,6 +5,7 @@
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/Main.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/commands/HoldItemCommand.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/shop/BuyItem.java
+/EconomyShopGUI/src/main/java/rohit/EcoGUI/commands/SellAllCommand.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/section/Section.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/shop/BuyingSystem.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/shop/SellingSystem.java
