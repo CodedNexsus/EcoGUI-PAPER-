@@ -1,0 +1,29 @@
+name: EcoGUI
+version: 1.0.0
+main: rohit.EcoGUI.Main
+api-version: 1.21
+
+depend: [Vault]
+
+commands:
+  shop:
+    description: Open the shop GUI
+    usage: /shop
+  rshop:
+    description: Reload section configurations
+    usage: /rshop
+  csection:
+    description: Create a new section
+    usage: /csection <displayname> <slot> <icon>
+  hitem:
+    description: Add currently held item to shop
+    usage: /hitem <section name> <buy price> <sell price>
+  aitem:
+    description: Add item to shop by name
+    usage: /aitem <item name> <section name> <buy price> <sell price>
+  sell:
+    description: Sell items from your inventory
+    usage: /sell <item name> <amount> or /sell hand [amount]
+  sellgui:
+    description: Open the sell GUI to sell multiple items
+    usage: /sellgui
