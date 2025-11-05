@@ -90,6 +90,27 @@ Sell the item currently held in your main hand.
 
 ---
 
+#### `/sellall`
+Sell all items in your inventory at once.
+
+**Usage:** `/sellall`
+
+**Permissions:** None (all players)
+
+**Features:**
+- Scans entire inventory
+- Sells all items with valid sell prices
+- Skips items without a configured sell price
+- Shows summary with total earned and new balance
+- Logs transaction to console
+
+**Example:**
+```
+/sellall
+```
+
+---
+
 #### `/sellgui`
 Opens the sell GUI where you can place items and sell them all at once.
 
@@ -163,7 +184,7 @@ Add an item to a shop section by material name.
 - `<item name>` - Material name (e.g., DIAMOND, STONE)
 - `<section name>` - Name of the section to add to
 - `<buy price>` - Price players pay to buy (must be > 0)
-- `<sell price>` - Price players receive when selling (use -1.0 for non-sellable)
+- `<sell price>` - Price players receive when selling (use -1.0 for non-sellable items)
 
 **Permissions:** `ecogui.admin` or OP
 
@@ -185,7 +206,7 @@ Add the item currently held in your main hand to a shop section.
 **Arguments:**
 - `<section name>` - Name of the section to add to
 - `<buy price>` - Price players pay to buy
-- `<sell price>` - Price players receive when selling
+- `<sell price>` - Price players receive when selling (use -1.0 for non-sellable items)
 
 **Permissions:** `ecogui.admin` or OP
 
@@ -248,14 +269,24 @@ page1:
       material: EMERALD
       buy: 500.0
       sell: 250.0
+    4:
+      material: BEDROCK
+      buy: 9999.0
+      sell: -1.0
 ```
+
+### Sell Price Values
+
+- **Positive Number (e.g., 50.0)** - Item can be sold for this price
+- **-1.0** - Item cannot be sold (players cannot sell this item)
+- **0 or Missing** - Item is not configured for selling
 
 ## Permissions
 
 | Permission | Description |
 |-----------|-------------|
 | `ecogui.admin` | Access to admin commands (/csection, /aitem, /hitem, /rshop) |
-| None | Players can use /shop, /sell, /sellgui |
+| None | Players can use /shop, /sell, /sellall, /sellgui |
 
 ## Troubleshooting
 
