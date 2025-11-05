@@ -24,6 +24,9 @@ commands:
   sell:
     description: Sell items from your inventory
     usage: /sell <item name> <amount> or /sell hand [amount]
+  sellall:
+    description: Sell all items in your inventory
+    usage: /sellall
   sellgui:
     description: Open the sell GUI to sell multiple items
     usage: /sellgui

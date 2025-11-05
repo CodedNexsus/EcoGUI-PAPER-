@@ -9,6 +9,7 @@ import rohit.EcoGUI.commands.HoldItemCommand;
 import rohit.EcoGUI.commands.CreateSectionCommand;
 import rohit.EcoGUI.commands.ReloadCommand;
 import rohit.EcoGUI.commands.SellCommand;
+import rohit.EcoGUI.commands.SellAllCommand;
 import rohit.EcoGUI.commands.SellGUICommand;
 import rohit.EcoGUI.commands.ShopCommand;
 import rohit.EcoGUI.config.ConfigManager;
@@ -68,6 +69,7 @@ public class Main extends JavaPlugin {
         getCommand("hitem").setExecutor(new HoldItemCommand(this));
         getCommand("aitem").setExecutor(new AddItemCommand(this));
         getCommand("sell").setExecutor(new SellCommand(this));
+        getCommand("sellall").setExecutor(new SellAllCommand(this));
         getCommand("sellgui").setExecutor(new SellGUICommand(this));
     }
 
