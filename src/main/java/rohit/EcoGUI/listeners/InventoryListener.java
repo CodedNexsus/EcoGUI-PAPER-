@@ -16,6 +16,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.ChatColor;
 import rohit.EcoGUI.Main;
 import rohit.EcoGUI.inventory.ShopInventoryHolder;
+import rohit.EcoGUI.inventory.SellInventoryHolder;
 import rohit.EcoGUI.section.Section;
 import rohit.EcoGUI.shop.Shop;
 import rohit.EcoGUI.shop.ShopItem;
@@ -47,6 +48,12 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
+        // Do not handle clicks for the Sell GUI; it's managed by SellGUIListener
+        Inventory top = event.getView().getTopInventory();
+        if (top != null && top.getHolder() instanceof SellInventoryHolder) {
+            return;
+        }
+
         String title = event.getView().getTitle();
         if (title.equals("§6Buy Item")) {
             Player player = (Player) event.getWhoClicked();
@@ -536,6 +543,11 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
+        // Skip Sell GUI - it has its own drag rules
+        Inventory top = event.getView().getTopInventory();
+        if (top != null && top.getHolder() instanceof SellInventoryHolder) {
+            return;
+        }
         if (event.getView().getTitle().contains("§6Shop")) {
             event.setCancelled(true);
         }
@@ -543,6 +555,11 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
+        // Skip Sell GUI - it has its own drop rules
+        Inventory top = event.getPlayer().getOpenInventory().getTopInventory();
+        if (top != null && top.getHolder() instanceof SellInventoryHolder) {
+            return;
+        }
         if (event.getPlayer().getOpenInventory().getTitle().contains("§6Shop")) {
             event.setCancelled(true);
         }

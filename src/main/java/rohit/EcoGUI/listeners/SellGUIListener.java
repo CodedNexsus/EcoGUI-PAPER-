@@ -1,12 +1,13 @@
 package rohit.EcoGUI.listeners;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.Inventory;
@@ -14,223 +15,224 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import rohit.EcoGUI.Main;
-import rohit.EcoGUI.inventory.ShopInventoryHolder;
+import rohit.EcoGUI.inventory.SellInventoryHolder;
 import rohit.EcoGUI.shop.SellingSystem;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+/**
+ * Sell GUI listener rewritten to:
+ * - Work reliably across Java/Bedrock (Android) clients by identifying the GUI via InventoryHolder instead of title text
+ * - Only process selling when the GUI is closed
+ * - Return any unsellable items back to the player to avoid loss
+ * - Prevent item dropping while the Sell GUI is open
+ */
 public class SellGUIListener implements Listener {
 
-    private Main plugin;
-    private SellingSystem sellingSystem;
-    private static final String SELL_GUI_TITLE = "§6Sell Items";
+    private static final int GUI_SIZE = 54;           // 6 rows
+    private static final int ITEM_AREA_END = 44;      // Slots 0..44 are item placement area
+    private static final int CONTROL_ROW_START = 45;  // Slots 45..53 are control row
+    private static final int CLOSE_BUTTON_SLOT = 49;  // Center of bottom row
+    private static final String SELL_GUI_TITLE = "§6Sell Items"; // Title for display only (not used for detection)
+
+    private final Main plugin;
+    private final SellingSystem sellingSystem;
 
     public SellGUIListener(Main plugin) {
         this.plugin = plugin;
         this.sellingSystem = new SellingSystem(plugin, plugin.getEconomy());
     }
 
+    // ===== Public API =====
+
     /**
-     * Open the sell GUI for a player
+     * Open the sell GUI for a player.
+     * Players can place any items into slots 0..44. Bottom row is reserved controls.
      */
     public void openSellGUI(Player player) {
-        // Create a 54-slot inventory (6 rows)
-        Inventory sellInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, SELL_GUI_TITLE);
+        Inventory sellInventory = Bukkit.createInventory(new SellInventoryHolder(null), GUI_SIZE, SELL_GUI_TITLE);
 
-        // Slots 0-44 (first 5 rows) are left completely empty for players to place items
-        // No glass panels here - players can place items freely
-
-        // Fill only the last row (slots 45-53) with glass panels, except for the close button
-        ItemStack glassPane = createGlassPane();
-        
-        // Fill slots 45-48 (left side of last row)
-        for (int i = 45; i < 49; i++) {
-            sellInventory.setItem(i, glassPane);
+        // Fill the control row with panes, keeping a close & sell button in the center
+        ItemStack pane = createGlassPane();
+        for (int i = CONTROL_ROW_START; i < GUI_SIZE; i++) {
+            if (i == CLOSE_BUTTON_SLOT) continue;
+            sellInventory.setItem(i, pane);
         }
-        
-        // Fill slots 50-53 (right side of last row)
-        for (int i = 50; i < 54; i++) {
-            sellInventory.setItem(i, glassPane);
-        }
-
-        // Add close button at center of last row (slot 49)
-        ItemStack closeButton = createCloseButton();
-        sellInventory.setItem(49, closeButton);
+        sellInventory.setItem(CLOSE_BUTTON_SLOT, createCloseButton());
 
         player.openInventory(sellInventory);
     }
 
-    /**
-     * Handle inventory click event for sell GUI
-     */
+    // ===== Event Handlers =====
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         InventoryView view = event.getView();
-        String title = view.getTitle();
-        
-        // Check if this is the sell GUI
-        if (!title.equals(SELL_GUI_TITLE)) {
-            return;
-        }
+        if (!isSellGui(view)) return;
 
         Player player = (Player) event.getWhoClicked();
-        int slot = event.getSlot();
-        Inventory clickedInventory = event.getClickedInventory();
-        Inventory topInventory = view.getTopInventory();
-        Inventory bottomInventory = view.getBottomInventory();
+        Inventory clicked = event.getClickedInventory();
+        if (clicked == null) return;
 
-        // If clicking on the GUI inventory (top inventory)
-        if (clickedInventory != null && clickedInventory.equals(topInventory)) {
-            // Allow clicks on slots 0-44 (item placement area)
-            if (slot >= 0 && slot < 45) {
-                // Allow all item movement within the GUI and to/from player inventory
-                return;
+        Inventory top = view.getTopInventory();
+
+        // Clicking inside our Sell GUI (top inventory)
+        if (clicked.equals(top)) {
+            int slot = event.getSlot();
+
+            // Allow free placement in item area 0..44
+            if (slot >= 0 && slot <= ITEM_AREA_END) {
+                return; // not cancelled
             }
 
-            // Cancel clicks on glass panels (slots 45-48 and 50-53)
-            if ((slot >= 45 && slot < 49) || (slot >= 50 && slot < 54)) {
-                event.setCancelled(true);
-                return;
-            }
-
-            // Handle close button click (slot 49)
-            if (slot == 49) {
-                event.setCancelled(true);
+            // Block control row except for the close button
+            event.setCancelled(true);
+            if (slot == CLOSE_BUTTON_SLOT) {
                 player.closeInventory();
-                return;
             }
-        }
-
-        // If clicking on player inventory (bottom inventory)
-        if (clickedInventory != null && clickedInventory.equals(bottomInventory)) {
-            // Allow all clicks on player inventory
-            // This allows shift-clicking and dragging items to/from GUI
             return;
         }
+
+        // Clicking in player inventory (bottom): allow moves (including shift-click into top)
     }
 
-    /**
-     * Handle inventory drag event for sell GUI
-     */
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        String title = event.getView().getTitle();
-        
-        // Check if this is the sell GUI
-        if (!title.equals(SELL_GUI_TITLE)) {
-            return;
-        }
+        if (!isSellGui(event.getView())) return;
 
-        // Allow dragging items into slots 0-44 of the GUI
-        for (int slot : event.getRawSlots()) {
-            // If dragging into GUI inventory (slots 0-53)
-            if (slot < 54) {
-                // Allow dragging into slots 0-44
-                if (slot >= 0 && slot < 45) {
-                    return;
-                }
-                // Cancel dragging into glass panels and close button
-                if ((slot >= 45 && slot < 49) || (slot >= 50 && slot < 54) || slot == 49) {
-                    event.setCancelled(true);
-                    return;
-                }
+        // Only allow dragging into the item area 0..44; block control row 45..53
+        for (int rawSlot : event.getRawSlots()) {
+            if (rawSlot < GUI_SIZE && rawSlot > ITEM_AREA_END) {
+                event.setCancelled(true);
+                return;
             }
         }
     }
 
-    /**
-     * Handle inventory close event for sell GUI
-     */
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        String title = event.getView().getTitle();
-        
-        // Check if this is the sell GUI
-        if (!title.equals(SELL_GUI_TITLE)) {
+        if (!isSellGui(event.getView())) return;
+
+        Player player = (Player) event.getPlayer();
+        Inventory inv = event.getInventory();
+
+        // Collect all items from the item area and compute totals
+        Map<Material, Integer> soldCounts = new HashMap<>();
+        List<ItemStack> refundItems = new ArrayList<>();
+        List<ItemStack> allItemsForFailRefund = new ArrayList<>();
+        double totalValue = 0D;
+
+        for (int i = 0; i <= ITEM_AREA_END; i++) {
+            ItemStack it = inv.getItem(i);
+            if (it == null || it.getType() == Material.AIR) continue;
+
+            // Keep a clone so we can refund on economy failure without relying on inventory state
+            allItemsForFailRefund.add(it.clone());
+
+            double unitSell = sellingSystem.getItemSellPrice(it.getType());
+            if (unitSell > 0) {
+                soldCounts.merge(it.getType(), it.getAmount(), Integer::sum);
+                totalValue += unitSell * it.getAmount();
+            } else {
+                refundItems.add(it.clone());
+            }
+        }
+
+        // Nothing in the GUI
+        if (soldCounts.isEmpty() && refundItems.isEmpty()) {
+            player.sendMessage("§7No items to sell!");
             return;
         }
 
-        Player player = (Player) event.getPlayer();
-        Inventory inventory = event.getInventory();
-
-        // Calculate total value and collect items
-        double totalValue = 0;
-        Map<Material, Integer> itemsToSell = new HashMap<>();
-
-        // Iterate through slots 0-44 (the selling area)
-        for (int i = 0; i < 45; i++) {
-            ItemStack item = inventory.getItem(i);
-            
-            if (item != null && item.getType() != Material.AIR && !isGlassPane(item.getType())) {
-                Material material = item.getType();
-                int amount = item.getAmount();
-
-                // Get sell price from SellingSystem
-                double sellPrice = sellingSystem.getItemSellPrice(material);
-
-                if (sellPrice > 0) {
-                    totalValue += sellPrice * amount;
-                    itemsToSell.put(material, itemsToSell.getOrDefault(material, 0) + amount);
-                }
-            }
+        // Process economy deposit only for sellable items
+        boolean depositOk = true;
+        if (totalValue > 0) {
+            depositOk = sellingSystem.depositMoney(player, totalValue);
         }
 
-        // If there are items to sell, process the sale
-        if (!itemsToSell.isEmpty()) {
-            processSellGUI(player, itemsToSell, totalValue);
-        } else {
-            player.sendMessage("§7No items to sell!");
-        }
-    }
-
-    /**
-     * Process the sell GUI transaction
-     */
-    private void processSellGUI(Player player, Map<Material, Integer> itemsToSell, double totalValue) {
-        // Deposit money to player
-        boolean success = sellingSystem.depositMoney(player, totalValue);
-
-        if (success) {
-            // Send success message
-            player.sendMessage("§a✅ Items sold successfully!");
-            player.sendMessage("§7Total Earned: §a$" + sellingSystem.formatPrice(totalValue));
-            player.sendMessage("§7New Balance: §a$" + sellingSystem.formatPrice(sellingSystem.getPlayerBalance(player)));
-
-            // Log the transaction
-            StringBuilder itemsLog = new StringBuilder();
-            for (Map.Entry<Material, Integer> entry : itemsToSell.entrySet()) {
-                if (itemsLog.length() > 0) {
-                    itemsLog.append(", ");
-                }
-                itemsLog.append(entry.getValue()).append("x ").append(entry.getKey().name());
+        // If economy failed, refund everything (sold + unsellable)
+        if (!depositOk) {
+            for (ItemStack stack : allItemsForFailRefund) {
+                addOrDrop(player, stack);
             }
-
-            plugin.getLogger().info(
-                player.getName() + " sold items via sell GUI: " + itemsLog.toString() + 
-                " for $" + totalValue
-            );
-        } else {
             player.sendMessage("§c❌ Transaction failed!");
+            // Clear GUI slots to avoid dupes
+            clearItemArea(inv);
+            return;
+        }
+
+        // Economy succeeded: refund only the unsellable items
+        for (ItemStack stack : refundItems) {
+            addOrDrop(player, stack);
+        }
+
+        // Clear GUI item area so sold items are consumed
+        clearItemArea(inv);
+
+        // Messaging for success
+        if (totalValue > 0) {
+            player.sendMessage("§a✅ Items sold successfully!");
+            player.sendMessage("§7Total Earned: §a" + sellingSystem.formatPrice(totalValue));
+            player.sendMessage("§7New Balance: §a" + sellingSystem.formatPrice(sellingSystem.getPlayerBalance(player)));
+
+            // Log a short summary
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<Material, Integer> e : soldCounts.entrySet()) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(e.getValue()).append("x ").append(e.getKey().name());
+            }
+            plugin.getLogger().info(player.getName() + " sold via Sell GUI: " + sb + " for " + totalValue);
+        } else {
+            // Only unsellable items were present
+            player.sendMessage("§7No sellable items found. Returned items to your inventory.");
         }
     }
 
-    /**
-     * Create a glass pane item
-     */
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        Player player = event.getPlayer();
+        InventoryView view = player.getOpenInventory();
+        if (view != null && view.getTopInventory() != null && view.getTopInventory().getHolder() instanceof SellInventoryHolder) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + " You cannot drop items while the Sell GUI is open.");
+        }
+    }
+
+    // ===== Helpers =====
+
+    private boolean isSellGui(InventoryView view) {
+        Inventory top = view.getTopInventory();
+        return top != null && top.getHolder() instanceof SellInventoryHolder;
+    }
+
+    private void clearItemArea(Inventory inv) {
+        for (int i = 0; i <= ITEM_AREA_END; i++) {
+            inv.setItem(i, null);
+        }
+    }
+
+    private void addOrDrop(Player player, ItemStack stack) {
+        if (stack == null || stack.getType() == Material.AIR || stack.getAmount() <= 0) return;
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(stack);
+        if (!leftover.isEmpty()) {
+            for (ItemStack l : leftover.values()) {
+                if (l != null && l.getType() != Material.AIR && l.getAmount() > 0) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), l);
+                }
+            }
+        }
+    }
+
     private ItemStack createGlassPane() {
-        ItemStack glassPane = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
-        ItemMeta meta = glassPane.getItemMeta();
+        ItemStack pane = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+        ItemMeta meta = pane.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(" ");
-            glassPane.setItemMeta(meta);
+            pane.setItemMeta(meta);
         }
-        return glassPane;
+        return pane;
     }
 
-    /**
-     * Create a close button
-     */
     private ItemStack createCloseButton() {
         ItemStack closeButton = new ItemStack(Material.BARRIER);
         ItemMeta meta = closeButton.getItemMeta();
@@ -239,29 +241,5 @@ public class SellGUIListener implements Listener {
             closeButton.setItemMeta(meta);
         }
         return closeButton;
-    }
-
-    /**
-     * Check if a material is a glass pane
-     */
-    private boolean isGlassPane(Material material) {
-        return material == Material.LIGHT_GRAY_STAINED_GLASS_PANE || 
-               material == Material.GLASS_PANE ||
-               material == Material.WHITE_STAINED_GLASS_PANE ||
-               material == Material.GRAY_STAINED_GLASS_PANE;
-    }
-
-    /**
-     * Handle player drop item event for sell GUI
-     */
-    @EventHandler
-    public void onPlayerDropItem(PlayerDropItemEvent event) {
-        Player player = event.getPlayer();
-        
-        // Check if player has sell GUI open
-        if (player.getOpenInventory().getTitle().equals(SELL_GUI_TITLE)) {
-            event.setCancelled(true);
-            player.sendMessage("§c❌ You cannot drop items from the sell GUI!");
-        }
     }
 }

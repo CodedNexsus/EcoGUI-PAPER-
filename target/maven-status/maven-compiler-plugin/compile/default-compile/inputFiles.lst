@@ -10,6 +10,7 @@
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/shop/BuyingSystem.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/shop/SellingSystem.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/listeners/SellGUIListener.java
+/EconomyShopGUI/src/main/java/rohit/EcoGUI/inventory/SellInventoryHolder.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/shop/ShopItem.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/listeners/InventoryListener.java
 /EconomyShopGUI/src/main/java/rohit/EcoGUI/commands/SellGUICommand.java
