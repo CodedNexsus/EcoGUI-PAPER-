@@ -257,36 +257,6 @@ page1:
 | `ecogui.admin` | Access to admin commands (/csection, /aitem, /hitem, /rshop) |
 | None | Players can use /shop, /sell, /sellgui |
 
-## To-Do List
-
-### Planned Features
-
-- [ ] **Sell Price Lookup** - Dynamically read sell prices from shop configuration
-- [ ] **Bulk Operations** - Sell multiple item types at once
-- [ ] **Price History** - Track price changes over time
-- [ ] **Shop Permissions** - Per-section access control
-- [ ] **Custom Item Names** - Support for custom display names in shop
-- [ ] **Item Lore** - Add lore/description to shop items
-- [ ] **Sell GUI Improvements** - Add item preview and price calculation
-- [ ] **Database Support** - Optional MySQL/SQLite for transaction history
-- [ ] **Shop Notifications** - Broadcast shop updates to players
-- [ ] **Price Multipliers** - Support for dynamic pricing based on supply/demand
-- [ ] **Sell All Command** - `/sellall` to sell entire inventory
-- [ ] **Shop Search** - Search functionality for items
-- [ ] **Favorites** - Save favorite items for quick access
-- [ ] **Price Limits** - Set min/max prices for items
-- [ ] **Admin GUI** - GUI-based shop management
-- [ ] **Localization** - Multi-language support
-
-### Bug Fixes & Improvements
-
-- [ ] Optimize inventory loading for large shops
-- [ ] Add more detailed error messages
-- [ ] Improve performance for shops with many items
-- [ ] Add command tab completion
-- [ ] Better handling of invalid configurations
-- [ ] Add shop statistics and analytics
-
 ## Troubleshooting
 
 ### Items not appearing in shop
@@ -303,13 +273,6 @@ page1:
 - Make sure players can place items in the inventory
 - Check that the close button is clickable
 - Verify that items are being detected correctly
-
-## Support
-
-For issues, feature requests, or questions:
-- Create an issue on GitHub
-- Check the configuration files in `plugins/EcoGUI/`
-- Review the console logs for error messages
 
 ## License
 
