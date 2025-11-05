@@ -77,9 +77,11 @@ public class SellGUIListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         int slot = event.getSlot();
         Inventory clickedInventory = event.getClickedInventory();
+        Inventory topInventory = view.getTopInventory();
+        Inventory bottomInventory = view.getBottomInventory();
 
         // If clicking on the GUI inventory (top inventory)
-        if (clickedInventory != null && clickedInventory.equals(view.getTopInventory())) {
+        if (clickedInventory != null && clickedInventory.equals(topInventory)) {
             // Allow clicks on slots 0-44 (item placement area)
             if (slot >= 0 && slot < 45) {
                 // Allow item placement and movement freely
@@ -100,10 +102,15 @@ public class SellGUIListener implements Listener {
             }
         }
 
-        // If clicking on player inventory (bottom inventory), allow it
-        // This allows shift-clicking and dragging from player inventory to GUI
-        if (clickedInventory != null && clickedInventory.equals(view.getBottomInventory())) {
-            // Allow all clicks on player inventory
+        // If clicking on player inventory (bottom inventory)
+        if (clickedInventory != null && clickedInventory.equals(bottomInventory)) {
+            // Allow shift-click to transfer items to GUI
+            // Minecraft will automatically handle the transfer
+            if (event.isShiftClick()) {
+                // Allow shift-click - item will move to GUI
+                return;
+            }
+            // Allow regular clicks on player inventory
             return;
         }
     }
