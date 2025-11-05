@@ -84,13 +84,7 @@ public class SellGUIListener implements Listener {
         if (clickedInventory != null && clickedInventory.equals(topInventory)) {
             // Allow clicks on slots 0-44 (item placement area)
             if (slot >= 0 && slot < 45) {
-                // Block shift-click from GUI to player inventory
-                if (event.isShiftClick()) {
-                    event.setCancelled(true);
-                    player.sendMessage("§c❌ You cannot move items out of the sell GUI!");
-                    return;
-                }
-                // Allow regular clicks and dragging within GUI
+                // Allow all item movement within the GUI and to/from player inventory
                 return;
             }
 
@@ -110,12 +104,8 @@ public class SellGUIListener implements Listener {
 
         // If clicking on player inventory (bottom inventory)
         if (clickedInventory != null && clickedInventory.equals(bottomInventory)) {
-            // Allow shift-click to transfer items TO GUI
-            if (event.isShiftClick()) {
-                // Allow shift-click - item will move to GUI
-                return;
-            }
-            // Allow regular clicks on player inventory
+            // Allow all clicks on player inventory
+            // This allows shift-clicking and dragging items to/from GUI
             return;
         }
     }
@@ -132,30 +122,7 @@ public class SellGUIListener implements Listener {
             return;
         }
 
-        InventoryView view = event.getView();
-        Inventory topInventory = view.getTopInventory();
-        Inventory bottomInventory = view.getBottomInventory();
-
-        // Check if dragging FROM GUI TO player inventory
-        boolean dragFromGUI = false;
-        boolean dragToPlayer = false;
-
-        for (int slot : event.getRawSlots()) {
-            // Slots 0-53 are in GUI, 54+ are in player inventory
-            if (slot < 54) {
-                dragFromGUI = true;
-            } else {
-                dragToPlayer = true;
-            }
-        }
-
-        // Block dragging items FROM GUI TO player inventory
-        if (dragFromGUI && dragToPlayer) {
-            event.setCancelled(true);
-            return;
-        }
-
-        // Allow dragging items INTO GUI from player inventory
+        // Allow dragging items into slots 0-44 of the GUI
         for (int slot : event.getRawSlots()) {
             // If dragging into GUI inventory (slots 0-53)
             if (slot < 54) {
