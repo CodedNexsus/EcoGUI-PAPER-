@@ -300,11 +300,6 @@ page1:
 - Check that the sell price is not -1.0 (reserved for non-sellable items)
 - Ensure Vault and an economy plugin are installed
 
-### Sell GUI not working
-- Make sure players can place items in the inventory
-- Check that the close button is clickable
-- Verify that items are being detected correctly
-
 ## License
 
 This project is provided as-is for use on Minecraft servers.
