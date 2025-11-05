@@ -38,12 +38,10 @@ public class SellCommand implements CommandExecutor {
 
         String firstArg = args[0].toLowerCase();
 
-        // Handle /sell hand [amount]
         if (firstArg.equals("hand")) {
             return handleHandSell(player, args);
         }
 
-        // Handle /sell <item name> <amount>
         if (args.length < 2) {
             player.sendMessage("§c❌ Usage: /sell <item name> <amount> or /sell hand [amount]");
             return true;
@@ -52,13 +50,9 @@ public class SellCommand implements CommandExecutor {
         return handleItemSell(player, args);
     }
 
-    /**
-     * Handle /sell hand [amount] command
-     */
     private boolean handleHandSell(Player player, String[] args) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
 
-        // Check if player is holding an item
         if (itemInHand == null || itemInHand.getType() == Material.AIR) {
             player.sendMessage("§c❌ You must be holding an item!");
             return true;
@@ -67,7 +61,6 @@ public class SellCommand implements CommandExecutor {
         Material material = itemInHand.getType();
         int amount;
 
-        // If no amount specified, sell all items of that type
         if (args.length < 2) {
             amount = countItemInInventory(player, material);
             if (amount == 0) {
@@ -75,7 +68,6 @@ public class SellCommand implements CommandExecutor {
                 return true;
             }
         } else {
-            // Parse the amount
             String amountStr = args[1];
             try {
                 amount = Integer.parseInt(amountStr);
@@ -90,7 +82,6 @@ public class SellCommand implements CommandExecutor {
             }
         }
 
-        // Check if player has the item
         int itemCount = countItemInInventory(player, material);
         if (itemCount < amount) {
             player.sendMessage("§c❌ Insufficient items!");
@@ -99,20 +90,15 @@ public class SellCommand implements CommandExecutor {
             return true;
         }
 
-        // Process the sale
         sellingSystem.processSell(player, material, amount);
 
         return true;
     }
 
-    /**
-     * Handle /sell <item name> <amount> command
-     */
     private boolean handleItemSell(Player player, String[] args) {
         String itemName = args[0];
         String amountStr = args[1];
 
-        // Validate material
         Material material;
         try {
             material = Material.valueOf(itemName.toUpperCase());
@@ -121,7 +107,6 @@ public class SellCommand implements CommandExecutor {
             return true;
         }
 
-        // Validate amount
         int amount;
         try {
             amount = Integer.parseInt(amountStr);
@@ -135,7 +120,6 @@ public class SellCommand implements CommandExecutor {
             return true;
         }
 
-        // Check if player has the item
         int itemCount = countItemInInventory(player, material);
         if (itemCount < amount) {
             player.sendMessage("§c❌ Insufficient items!");
@@ -144,15 +128,11 @@ public class SellCommand implements CommandExecutor {
             return true;
         }
 
-        // Process the sale
         sellingSystem.processSell(player, material, amount);
 
         return true;
     }
 
-    /**
-     * Count how many of a specific material the player has in their inventory
-     */
     private int countItemInInventory(Player player, Material material) {
         int count = 0;
         for (ItemStack item : player.getInventory().getContents()) {

@@ -48,7 +48,6 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        // Do not handle clicks for the Sell GUI; it's managed by SellGUIListener
         Inventory top = event.getView().getTopInventory();
         if (top != null && top.getHolder() instanceof SellInventoryHolder) {
             return;
@@ -359,10 +358,8 @@ public class InventoryListener implements Listener {
     }
 
     private void openBuyUI(Player player, ShopItem shopItem, String sectionName, String pageName) {
-        // 4 rows (36 slots): 0-8, 9-17, 18-26, 27-35
         Inventory buyInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 36, "§6Buy Item");
 
-        // Center item display at 13
         ItemStack itemDisplay = new ItemStack(shopItem.getMaterial());
         ItemMeta meta = itemDisplay.getItemMeta();
         if (meta != null) {
@@ -371,7 +368,6 @@ public class InventoryListener implements Listener {
         }
         buyInventory.setItem(13, itemDisplay);
 
-        // Price/quantity paper above at 4
         ItemStack priceDisplay = new ItemStack(Material.PAPER);
         ItemMeta priceMeta = priceDisplay.getItemMeta();
         if (priceMeta != null) {
@@ -388,7 +384,6 @@ public class InventoryListener implements Listener {
         }
         buyInventory.setItem(4, priceDisplay);
 
-        // Quantity controls below (row 3)
         ItemStack sub32 = createQuantityButton("§c-32", Material.RED_STAINED_GLASS_PANE);
         ItemStack sub16 = createQuantityButton("§c-16", Material.RED_STAINED_GLASS_PANE);
         ItemStack sub1  = createQuantityButton("§c-1",  Material.RED_STAINED_GLASS_PANE);
@@ -398,7 +393,6 @@ public class InventoryListener implements Listener {
         ItemStack add64 = createQuantityButton("§a+64", Material.LIME_STAINED_GLASS_PANE);
         ItemStack sub64 = createQuantityButton("§c-64", Material.RED_STAINED_GLASS_PANE);
 
-        // Quantity line layout (row 3: 18..26): +64, +1, +16, +32, [separator], -1, -16, -32, -64
         ItemStack glass = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
         if (glassMeta != null) {
@@ -422,7 +416,6 @@ public class InventoryListener implements Listener {
         buyInventory.setItem(25, sub32);
         buyInventory.setItem(26, sub64);
 
-        // Bottom row: player head (27), confirm (31), close (34), back (35)
         ItemStack playerHead = createPlayerHead(player);
         buyInventory.setItem(27, playerHead);
 
@@ -438,12 +431,10 @@ public class InventoryListener implements Listener {
     }
 
     private void handleBuyGuiClick(Player player, Inventory inv, int slot) {
-        // Close
         if (slot == 34) {
             player.closeInventory();
             return;
         }
-        // Back
         if (slot == 35) {
             ItemStack paper = inv.getItem(4);
             if (paper != null && paper.getType() == Material.PAPER) {
@@ -457,7 +448,6 @@ public class InventoryListener implements Listener {
                     }
                 }
             }
-            // Fallback to sections if metadata is missing
             handleBackToSections(player);
             return;
         }
@@ -478,7 +468,6 @@ public class InventoryListener implements Listener {
         if (unitPrice < 0) unitPrice = 0;
 
         int delta = 0;
-        // New mapping for quantity line (18..26): +1, +16, +32, +64, [separator], -1, -16, -32, -64
         if (slot == 18) delta = +1;
         else if (slot == 19) delta = +16;
         else if (slot == 20) delta = +32;
@@ -495,7 +484,6 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        // Buy when clicking on paper item (slot 4)
         if (slot == 4) {
             Material material;
             try {
@@ -506,7 +494,6 @@ public class InventoryListener implements Listener {
             }
             ShopItem shopItem = new ShopItem(material, unitPrice, -1.0, 0);
             buyingSystem.processBuy(player, shopItem, qty);
-            // Don't close inventory - user stays on buy GUI page
         }
     }
 
@@ -543,7 +530,6 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        // Skip Sell GUI - it has its own drag rules
         Inventory top = event.getView().getTopInventory();
         if (top != null && top.getHolder() instanceof SellInventoryHolder) {
             return;
@@ -555,7 +541,6 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        // Skip Sell GUI - it has its own drop rules
         Inventory top = event.getPlayer().getOpenInventory().getTopInventory();
         if (top != null && top.getHolder() instanceof SellInventoryHolder) {
             return;

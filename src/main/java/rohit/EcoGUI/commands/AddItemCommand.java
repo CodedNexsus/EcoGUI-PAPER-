@@ -159,7 +159,6 @@ public class AddItemCommand implements CommandExecutor {
                     maxSlot = slot;
                 }
             } catch (NumberFormatException e) {
-                // Ignore invalid slot numbers
             }
         }
 

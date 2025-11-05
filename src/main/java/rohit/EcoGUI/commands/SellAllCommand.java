@@ -31,7 +31,6 @@ public class SellAllCommand implements CommandExecutor {
 
         Player player = (Player) sender;
 
-        // Collect all items from inventory
         Map<Material, Integer> itemsToSell = new HashMap<>();
         double totalValue = 0;
 
@@ -40,7 +39,6 @@ public class SellAllCommand implements CommandExecutor {
                 Material material = item.getType();
                 int amount = item.getAmount();
 
-                // Get sell price from SellingSystem
                 double sellPrice = sellingSystem.getItemSellPrice(material);
 
                 if (sellPrice > 0) {
@@ -50,36 +48,27 @@ public class SellAllCommand implements CommandExecutor {
             }
         }
 
-        // Check if there are items to sell
         if (itemsToSell.isEmpty()) {
             player.sendMessage("§c❌ You don't have any items to sell!");
             return true;
         }
 
-        // Process the sale
         processSellAll(player, itemsToSell, totalValue);
 
         return true;
     }
 
-    /**
-     * Process the sell all transaction
-     */
     private void processSellAll(Player player, Map<Material, Integer> itemsToSell, double totalValue) {
-        // Remove items from inventory
         removeItemsFromInventory(player, itemsToSell);
 
-        // Deposit money to player
         boolean success = sellingSystem.depositMoney(player, totalValue);
 
         if (success) {
-            // Send success message
             player.sendMessage("§a✅ All items sold successfully!");
             player.sendMessage("§7Items Sold: §e" + itemsToSell.size());
             player.sendMessage("§7Total Earned: §a$" + sellingSystem.formatPrice(totalValue));
             player.sendMessage("§7New Balance: §a$" + sellingSystem.formatPrice(sellingSystem.getPlayerBalance(player)));
 
-            // Log the transaction
             StringBuilder itemsLog = new StringBuilder();
             for (Map.Entry<Material, Integer> entry : itemsToSell.entrySet()) {
                 if (itemsLog.length() > 0) {
@@ -93,7 +82,6 @@ public class SellAllCommand implements CommandExecutor {
                 " for $" + totalValue
             );
         } else {
-            // Refund items if transaction failed
             for (Map.Entry<Material, Integer> entry : itemsToSell.entrySet()) {
                 player.getInventory().addItem(new ItemStack(entry.getKey(), entry.getValue()));
             }
@@ -101,19 +89,14 @@ public class SellAllCommand implements CommandExecutor {
         }
     }
 
-    /**
-     * Remove items from player's inventory
-     */
     private void removeItemsFromInventory(Player player, Map<Material, Integer> itemsToSell) {
         for (ItemStack item : player.getInventory().getContents()) {
             if (item != null && item.getType() != Material.AIR) {
                 Material material = item.getType();
                 
-                // Check if this material should be sold
                 if (itemsToSell.containsKey(material)) {
                     double sellPrice = sellingSystem.getItemSellPrice(material);
                     
-                    // Only remove if it has a valid sell price
                     if (sellPrice > 0) {
                         item.setAmount(0);
                     }
