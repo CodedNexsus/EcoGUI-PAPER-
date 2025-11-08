@@ -24,10 +24,20 @@ public class BuyingSystem {
             return false;
         }
         
-        // Check max buy quantity from config
+        // Check min and max buy quantity from config
         if (plugin instanceof Main) {
             Main mainPlugin = (Main) plugin;
+            int minBuyQuantity = mainPlugin.getConfigManager().getMinBuyQuantity();
             int maxBuyQuantity = mainPlugin.getConfigManager().getMaxBuyQuantity();
+            
+            // Check minimum quantity
+            if (minBuyQuantity > 0 && quantity < minBuyQuantity) {
+                player.sendMessage("§c❌ Minimum purchase quantity is " + minBuyQuantity + "!");
+                player.sendMessage("§7You tried to buy: §e" + quantity);
+                return false;
+            }
+            
+            // Check maximum quantity
             if (maxBuyQuantity > 0 && quantity > maxBuyQuantity) {
                 player.sendMessage("§c❌ Maximum purchase quantity is " + maxBuyQuantity + "!");
                 player.sendMessage("§7You tried to buy: §e" + quantity);
