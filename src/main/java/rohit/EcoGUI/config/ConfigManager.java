@@ -1,7 +1,10 @@
 package rohit.EcoGUI.config;
 
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
+import java.io.IOException;
 
 public class ConfigManager {
 
@@ -9,12 +12,15 @@ public class ConfigManager {
     private File pluginFolder;
     private File sectionsFolder;
     private File shopsFolder;
+    private FileConfiguration config;
+    private File configFile;
 
     public ConfigManager(JavaPlugin plugin) {
         this.plugin = plugin;
         this.pluginFolder = plugin.getDataFolder();
         this.sectionsFolder = new File(pluginFolder, "sections");
         this.shopsFolder = new File(pluginFolder, "shops");
+        this.configFile = new File(pluginFolder, "config.yml");
     }
 
     public void loadOrCreateFolders() {
@@ -38,6 +44,82 @@ public class ConfigManager {
             plugin.getLogger().info("📁 Creating shops folder");
             shopsFolder.mkdirs();
         }
+        
+        loadConfig();
+    }
+    
+    private void loadConfig() {
+        if (!configFile.exists()) {
+            plugin.getLogger().info("📁 Creating config.yml");
+            plugin.saveResource("config.yml", false);
+        }
+        
+        config = YamlConfiguration.loadConfiguration(configFile);
+        plugin.getLogger().info("✅ Configuration loaded successfully");
+    }
+    
+    public void reloadConfig() {
+        config = YamlConfiguration.loadConfiguration(configFile);
+        plugin.getLogger().info("✅ Configuration reloaded");
+    }
+    
+    public FileConfiguration getConfig() {
+        if (config == null) {
+            loadConfig();
+        }
+        return config;
+    }
+    
+    public int getMaxBuyQuantity() {
+        return getConfig().getInt("purchase.max_buy_quantity", 9999);
+    }
+    
+    public int getMinBuyQuantity() {
+        return getConfig().getInt("purchase.min_buy_quantity", 1);
+    }
+    
+    public int getMaxSellQuantity() {
+        return getConfig().getInt("selling.max_sell_quantity", 9999);
+    }
+    
+    public int getMinSellQuantity() {
+        return getConfig().getInt("selling.min_sell_quantity", 1);
+    }
+    
+    public boolean isEnableSellGui() {
+        return getConfig().getBoolean("inventory.enable_sell_gui", true);
+    }
+    
+    public boolean isEnableBuyGui() {
+        return getConfig().getBoolean("inventory.enable_buy_gui", true);
+    }
+    
+    public int getItemsPerPage() {
+        return getConfig().getInt("pagination.items_per_page", 45);
+    }
+    
+    public boolean isEnablePagination() {
+        return getConfig().getBoolean("pagination.enable_pagination", true);
+    }
+    
+    public boolean isEnablePurchaseMessages() {
+        return getConfig().getBoolean("messages.enable_purchase_messages", true);
+    }
+    
+    public boolean isEnableSellMessages() {
+        return getConfig().getBoolean("messages.enable_sell_messages", true);
+    }
+    
+    public boolean isEnableInventoryFullWarnings() {
+        return getConfig().getBoolean("messages.enable_inventory_full_warnings", true);
+    }
+    
+    public boolean isDebugLoggingEnabled() {
+        return getConfig().getBoolean("debug.enable_debug_logging", false);
+    }
+    
+    public boolean isLogTransactionsEnabled() {
+        return getConfig().getBoolean("debug.log_transactions", true);
     }
 
     public File getPluginFolder() {

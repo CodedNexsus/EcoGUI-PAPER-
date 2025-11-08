@@ -1,0 +1,80 @@
+# EcoGUI Configuration File
+# This file contains all configuration options for the EcoGUI plugin
+
+# ============================================
+# Purchase Settings
+# ============================================
+purchase:
+  # Maximum quantity a player can buy in a single transaction
+  # Set to -1 for unlimited
+  # Default: 9999
+  max_buy_quantity: 9999
+  
+  # Minimum quantity a player can buy in a single transaction
+  # Default: 1
+  min_buy_quantity: 1
+
+# ============================================
+# Selling Settings
+# ============================================
+selling:
+  # Maximum quantity a player can sell in a single transaction
+  # Set to -1 for unlimited
+  # Default: 9999
+  max_sell_quantity: 9999
+  
+  # Minimum quantity a player can sell in a single transaction
+  # Default: 1
+  min_sell_quantity: 1
+
+# ============================================
+# Inventory Settings
+# ============================================
+inventory:
+  # Enable/disable the sell GUI feature
+  # Default: true
+  enable_sell_gui: true
+  
+  # Enable/disable the buy GUI feature
+  # Default: true
+  enable_buy_gui: true
+
+# ============================================
+# Pagination Settings
+# ============================================
+pagination:
+  # Items per page in shop inventory
+  # Default: 45 (5 rows of 9 items)
+  items_per_page: 45
+  
+  # Enable/disable pagination
+  # Default: true
+  enable_pagination: true
+
+# ============================================
+# Message Settings
+# ============================================
+messages:
+  # Enable/disable purchase success messages
+  # Default: true
+  enable_purchase_messages: true
+  
+  # Enable/disable sell success messages
+  # Default: true
+  enable_sell_messages: true
+  
+  # Enable/disable inventory full warnings
+  # Default: true
+  enable_inventory_full_warnings: true
+
+# ============================================
+# Debug Settings
+# ============================================
+debug:
+  # Enable debug logging
+  # Default: false
+  enable_debug_logging: false
+  
+  # Log all transactions
+  # Default: true
+  log_transactions: true
