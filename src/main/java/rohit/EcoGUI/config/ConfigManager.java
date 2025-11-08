@@ -49,13 +49,21 @@ public class ConfigManager {
     }
     
     private void loadConfig() {
-        if (!configFile.exists()) {
-            plugin.getLogger().info("📁 Creating config.yml");
-            plugin.saveResource("config.yml", false);
+        try {
+            if (!configFile.exists()) {
+                plugin.getLogger().info("📁 Creating config.yml from default template");
+                plugin.saveResource("config.yml", false);
+                plugin.getLogger().info("✅ config.yml created successfully");
+            }
+            
+            config = YamlConfiguration.loadConfiguration(configFile);
+            plugin.getLogger().info("✅ Configuration loaded successfully");
+        } catch (Exception e) {
+            plugin.getLogger().warning("❌ Error loading config.yml: " + e.getMessage());
+            e.printStackTrace();
+            // Create a default config if loading fails
+            config = new YamlConfiguration();
         }
-        
-        config = YamlConfiguration.loadConfiguration(configFile);
-        plugin.getLogger().info("✅ Configuration loaded successfully");
     }
     
     public void reloadConfig() {

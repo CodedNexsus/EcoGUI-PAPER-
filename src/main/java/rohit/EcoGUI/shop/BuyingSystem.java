@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import rohit.EcoGUI.Main;
 
 public class BuyingSystem {
 
@@ -21,6 +22,17 @@ public class BuyingSystem {
         if (quantity <= 0) {
             player.sendMessage("§c❌ Quantity must be greater than 0!");
             return false;
+        }
+        
+        // Check max buy quantity from config
+        if (plugin instanceof Main) {
+            Main mainPlugin = (Main) plugin;
+            int maxBuyQuantity = mainPlugin.getConfigManager().getMaxBuyQuantity();
+            if (maxBuyQuantity > 0 && quantity > maxBuyQuantity) {
+                player.sendMessage("§c❌ Maximum purchase quantity is " + maxBuyQuantity + "!");
+                player.sendMessage("§7You tried to buy: §e" + quantity);
+                return false;
+            }
         }
 
         double totalPrice = shopItem.getBuyPrice() * quantity;
