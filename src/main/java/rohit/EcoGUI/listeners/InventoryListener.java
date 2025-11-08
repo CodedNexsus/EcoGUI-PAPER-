@@ -48,58 +48,49 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        Inventory top = event.getView().getTopInventory();
-        if (top != null && top.getHolder() instanceof SellInventoryHolder) {
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        
+        Inventory clickedInv = event.getClickedInventory();
+        if (clickedInv == null) return;
+        
+        if (clickedInv.getHolder() instanceof SellInventoryHolder) {
             return;
         }
-
+        
+        if (!(clickedInv.getHolder() instanceof ShopInventoryHolder)) {
+            return;
+        }
+        
+        event.setCancelled(true);
+        
+        Player player = (Player) event.getWhoClicked();
         String title = event.getView().getTitle();
-        if (title.equals("§6Buy Item")) {
-            Player player = (Player) event.getWhoClicked();
-            int slot = event.getSlot();
-            event.setCancelled(true);
-            handleBuyGuiClick(player, event.getInventory(), slot);
+        int slot = event.getSlot();
+        
+        if (title.equals("Buy Item")) {
+            handleBuyGuiClick(player, clickedInv, slot);
             return;
         }
-
-        if (title.contains("§6Shop")) {
-            Player player = (Player) event.getWhoClicked();
-            int slot = event.getSlot();
-
+        
+        if (title.equals("Shop")) {
             if (slot == 53) {
-                event.setCancelled(true);
                 player.closeInventory();
-            } else if (slot == 45) {
-                event.setCancelled(true);
             } else {
-                event.setCancelled(true);
                 handleSectionClick(player, slot);
             }
             return;
         }
-
-        if (title.startsWith("§6")) {
-            Player player = (Player) event.getWhoClicked();
-            int slot = event.getSlot();
-
-            if (slot == 53) {
-                event.setCancelled(true);
-                handleBackToSections(player);
-            } else if (slot == 52) {
-                event.setCancelled(true);
-                player.closeInventory();
-            } else if (slot == 45) {
-                event.setCancelled(true);
-            } else if (slot == 46) {
-                event.setCancelled(true);
-                handlePreviousPage(player);
-            } else if (slot == 51) {
-                event.setCancelled(true);
-                handleNextPage(player);
-            } else {
-                event.setCancelled(true);
-                handleItemClick(player, slot);
-            }
+        
+        if (slot == 53) {
+            handleBackToSections(player);
+        } else if (slot == 52) {
+            player.closeInventory();
+        } else if (slot == 46) {
+            handlePreviousPage(player);
+        } else if (slot == 51) {
+            handleNextPage(player);
+        } else if (slot <= 44) {
+            handleItemClick(player, slot);
         }
     }
 
@@ -136,7 +127,7 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        Inventory shopItemsInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, "§6" + sectionName);
+        Inventory shopItemsInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, sectionName);
 
         for (Map.Entry<Integer, ShopItem> entry : pageItems.entrySet()) {
             int slot = entry.getKey();
@@ -181,7 +172,7 @@ public class InventoryListener implements Listener {
     }
 
     private void handleBackToSections(Player player) {
-        Inventory shopInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, "§6Shop");
+        Inventory shopInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, "Shop");
         addSections(shopInventory);
 
         ItemStack playerHead = createPlayerHead(player);
@@ -207,7 +198,14 @@ public class InventoryListener implements Listener {
         ItemStack item = new ItemStack(section.getMaterial());
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§e" + section.getDisplayName());
+            String displayName = section.getDisplayName();
+            if (displayName.startsWith("'") && displayName.endsWith("'")) {
+                displayName = displayName.substring(1, displayName.length() - 1);
+            }
+            if (!displayName.contains("§") && !displayName.contains("&")) {
+                displayName = "§f" + displayName;
+            }
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', displayName));
             item.setItemMeta(meta);
         }
         return item;
@@ -215,7 +213,7 @@ public class InventoryListener implements Listener {
 
     private void handlePreviousPage(Player player) {
         String title = player.getOpenInventory().getTitle();
-        String sectionName = title.replace("§6", "");
+        String sectionName = title.replace("Shop", "");
         String currentPageStr = extractPageFromTitle(title);
 
         int currentPageNum = Integer.parseInt(currentPageStr.replace("page", ""));
@@ -230,7 +228,7 @@ public class InventoryListener implements Listener {
 
     private void handleNextPage(Player player) {
         String title = player.getOpenInventory().getTitle();
-        String sectionName = title.replace("§6", "");
+        String sectionName = title.replace("Shop", "");
         String currentPageStr = extractPageFromTitle(title);
 
         int currentPageNum = Integer.parseInt(currentPageStr.replace("page", ""));
@@ -264,7 +262,7 @@ public class InventoryListener implements Listener {
         ItemStack item = new ItemStack(shopItem.getMaterial());
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§e" + shopItem.getMaterial().name());
+            meta.setDisplayName(shopItem.getMaterial().name());
             List<String> lore = new ArrayList<>();
             lore.add("§7Buy: §a$" + shopItem.getBuyPrice());
             if (shopItem.getSellPrice() == -1.0) {
@@ -285,7 +283,7 @@ public class InventoryListener implements Listener {
             skullMeta.setOwningPlayer(player);
             double balance = plugin.getEconomy().getBalance(player);
             String formattedBalance = plugin.getEconomy().format(balance);
-            skullMeta.setDisplayName("§e" + player.getName());
+            skullMeta.setDisplayName(player.getName());
             skullMeta.setLore(java.util.Arrays.asList(
                 "§7Balance: §a" + formattedBalance
             ));
@@ -298,7 +296,7 @@ public class InventoryListener implements Listener {
         ItemStack backButton = new ItemStack(Material.ARROW);
         ItemMeta meta = backButton.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§6← Back to Sections");
+            meta.setDisplayName("← Back to Sections");
             backButton.setItemMeta(meta);
         }
         return backButton;
@@ -308,7 +306,7 @@ public class InventoryListener implements Listener {
         ItemStack closeButton = new ItemStack(Material.BARRIER);
         ItemMeta meta = closeButton.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§c✕ Close Shop");
+            meta.setDisplayName("✕ Close Shop");
             closeButton.setItemMeta(meta);
         }
         return closeButton;
@@ -318,7 +316,7 @@ public class InventoryListener implements Listener {
         ItemStack redPanel = new ItemStack(Material.RED_STAINED_GLASS_PANE);
         ItemMeta meta = redPanel.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§c← Previous Page");
+            meta.setDisplayName("← Previous Page");
             redPanel.setItemMeta(meta);
         }
         return redPanel;
@@ -328,7 +326,7 @@ public class InventoryListener implements Listener {
         ItemStack bluePanel = new ItemStack(Material.BLUE_STAINED_GLASS_PANE);
         ItemMeta meta = bluePanel.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§b→ Next Page");
+            meta.setDisplayName("→ Next Page");
             bluePanel.setItemMeta(meta);
         }
         return bluePanel;
@@ -346,7 +344,7 @@ public class InventoryListener implements Listener {
 
     private void handleItemClick(Player player, int slot) {
         String title = player.getOpenInventory().getTitle();
-        String sectionName = title.replace("§6", "");
+        String sectionName = title.replace("Shop", "");
         String currentPageStr = extractPageFromTitle(title);
         Shop shop = plugin.getShopManager().getShop(sectionName);
         if (shop == null) return;
@@ -358,12 +356,12 @@ public class InventoryListener implements Listener {
     }
 
     private void openBuyUI(Player player, ShopItem shopItem, String sectionName, String pageName) {
-        Inventory buyInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 36, "§6Buy Item");
+        Inventory buyInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 36, "Buy Item");
 
         ItemStack itemDisplay = new ItemStack(shopItem.getMaterial());
         ItemMeta meta = itemDisplay.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§e" + shopItem.getMaterial().name());
+            meta.setDisplayName(formatMaterialName(shopItem.getMaterial()));
             itemDisplay.setItemMeta(meta);
         }
         buyInventory.setItem(13, itemDisplay);
@@ -528,13 +526,29 @@ public class InventoryListener implements Listener {
         return button;
     }
 
+    private String formatMaterialName(Material material) {
+        String name = material.name().toLowerCase();
+        String[] parts = name.split("_");
+        StringBuilder formatted = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                formatted.append(" ");
+            }
+            formatted.append(parts[i].substring(0, 1).toUpperCase()).append(parts[i].substring(1));
+        }
+        return formatted.toString();
+    }
+
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         Inventory top = event.getView().getTopInventory();
-        if (top != null && top.getHolder() instanceof SellInventoryHolder) {
+        if (top == null) return;
+        
+        if (top.getHolder() instanceof SellInventoryHolder) {
             return;
         }
-        if (event.getView().getTitle().contains("§6Shop")) {
+        
+        if (top.getHolder() instanceof ShopInventoryHolder) {
             event.setCancelled(true);
         }
     }
@@ -542,10 +556,13 @@ public class InventoryListener implements Listener {
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         Inventory top = event.getPlayer().getOpenInventory().getTopInventory();
-        if (top != null && top.getHolder() instanceof SellInventoryHolder) {
+        if (top == null) return;
+        
+        if (top.getHolder() instanceof SellInventoryHolder) {
             return;
         }
-        if (event.getPlayer().getOpenInventory().getTitle().contains("§6Shop")) {
+        
+        if (top.getHolder() instanceof ShopInventoryHolder) {
             event.setCancelled(true);
         }
     }

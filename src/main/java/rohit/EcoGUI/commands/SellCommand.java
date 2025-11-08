@@ -7,19 +7,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import rohit.EcoGUI.Main;
-import rohit.EcoGUI.listeners.SellGUIListener;
 import rohit.EcoGUI.shop.SellingSystem;
 
 public class SellCommand implements CommandExecutor {
 
     private Main plugin;
     private SellingSystem sellingSystem;
-    private SellGUIListener sellGUIListener;
 
     public SellCommand(Main plugin) {
         this.plugin = plugin;
         this.sellingSystem = new SellingSystem(plugin, plugin.getEconomy());
-        this.sellGUIListener = new SellGUIListener(plugin);
     }
 
     @Override
