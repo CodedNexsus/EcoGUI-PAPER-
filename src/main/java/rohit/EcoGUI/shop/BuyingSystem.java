@@ -40,8 +40,7 @@ public class BuyingSystem {
             return false;
         }
 
-        ItemStack itemToGive = new ItemStack(shopItem.getMaterial(), quantity);
-        player.getInventory().addItem(itemToGive);
+        addItemsToInventory(player, shopItem.getMaterial(), quantity);
 
         sendSuccessMessage(player, shopItem, quantity, totalPrice);
 
@@ -90,5 +89,31 @@ public class BuyingSystem {
     public boolean withdrawMoney(Player player, double amount) {
         EconomyResponse response = economy.withdrawPlayer(player, amount);
         return response.transactionSuccess();
+    }
+
+    private void addItemsToInventory(Player player, Material material, int quantity) {
+        int maxStackSize = material.getMaxStackSize();
+        int remaining = quantity;
+        int totalDropped = 0;
+
+        while (remaining > 0) {
+            int stackSize = Math.min(remaining, maxStackSize);
+            ItemStack itemStack = new ItemStack(material, stackSize);
+            
+            java.util.HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(itemStack);
+            
+            if (!leftover.isEmpty()) {
+                for (ItemStack drop : leftover.values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                }
+                totalDropped += leftover.values().stream().mapToInt(ItemStack::getAmount).sum();
+            }
+            
+            remaining -= stackSize;
+        }
+        
+        if (totalDropped > 0) {
+            player.sendMessage("§e⚠️ Inventory full! Dropped " + totalDropped + " items.");
+        }
     }
 }
