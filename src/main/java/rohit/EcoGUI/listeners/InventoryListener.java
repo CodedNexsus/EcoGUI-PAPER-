@@ -199,7 +199,7 @@ public class InventoryListener implements Listener {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             String displayName = section.getDisplayName();
-            if (displayName.startsWith("'") && displayName.endsWith("'")) {
+            if (displayName.length() > 1 && displayName.startsWith("'") && displayName.endsWith("'")) {
                 displayName = displayName.substring(1, displayName.length() - 1);
             }
             if (!displayName.contains("§") && !displayName.contains("&")) {

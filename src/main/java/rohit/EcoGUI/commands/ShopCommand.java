@@ -2,6 +2,7 @@ package rohit.EcoGUI.commands;
 
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -38,7 +39,7 @@ public class ShopCommand implements CommandExecutor {
     }
 
     private void openShopGUI(Player player) {
-        Inventory shopInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, "§6Shop");
+        Inventory shopInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, "Shop");
 
         addSections(shopInventory);
 
@@ -67,7 +68,14 @@ public class ShopCommand implements CommandExecutor {
         ItemMeta meta = item.getItemMeta();
         
         if (meta != null) {
-            meta.setDisplayName("§e" + section.getDisplayName());
+            String displayName = section.getDisplayName();
+            if (displayName.length() > 1 && displayName.startsWith("'") && displayName.endsWith("'")) {
+                displayName = displayName.substring(1, displayName.length() - 1);
+            }
+            if (!displayName.contains("§") && !displayName.contains("&")) {
+                displayName = "§f" + displayName;
+            }
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', displayName));
             item.setItemMeta(meta);
         }
         
@@ -84,7 +92,7 @@ public class ShopCommand implements CommandExecutor {
             double balance = economy.getBalance(player);
             String formattedBalance = economy.format(balance);
             
-            skullMeta.setDisplayName("§e" + player.getName());
+            skullMeta.setDisplayName(player.getName());
             skullMeta.setLore(java.util.Arrays.asList(
                 "§7Balance: §a" + formattedBalance
             ));
@@ -100,7 +108,7 @@ public class ShopCommand implements CommandExecutor {
         ItemMeta meta = closeButton.getItemMeta();
         
         if (meta != null) {
-            meta.setDisplayName("§c✕ Close");
+            meta.setDisplayName("✕ Close");
             closeButton.setItemMeta(meta);
         }
         
