@@ -36,6 +36,27 @@ public class SellingSystem {
             player.sendMessage("§c❌ Amount must be greater than 0!");
             return false;
         }
+        
+        // Check min and max sell quantity from config
+        if (plugin instanceof Main) {
+            Main mainPlugin = (Main) plugin;
+            int minSellQuantity = mainPlugin.getConfigManager().getMinSellQuantity();
+            int maxSellQuantity = mainPlugin.getConfigManager().getMaxSellQuantity();
+            
+            // Check minimum quantity
+            if (minSellQuantity > 0 && amount < minSellQuantity) {
+                player.sendMessage("§c❌ Minimum sell quantity is " + minSellQuantity + "!");
+                player.sendMessage("§7You tried to sell: §e" + amount);
+                return false;
+            }
+            
+            // Check maximum quantity
+            if (maxSellQuantity > 0 && amount > maxSellQuantity) {
+                player.sendMessage("§c❌ Maximum sell quantity is " + maxSellQuantity + "!");
+                player.sendMessage("§7You tried to sell: §e" + amount);
+                return false;
+            }
+        }
 
         int itemCount = countItemInInventory(player, material);
         if (itemCount < amount) {

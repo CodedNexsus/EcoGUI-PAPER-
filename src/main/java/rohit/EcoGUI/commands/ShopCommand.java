@@ -34,6 +34,13 @@ public class ShopCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+        
+        // Check if buy GUI is enabled in config
+        if (!plugin.getConfigManager().isEnableBuyGui()) {
+            player.sendMessage("§c❌ Buy GUI is currently disabled!");
+            return true;
+        }
+        
         openShopGUI(player);
         return true;
     }

@@ -25,6 +25,13 @@ public class SellGUICommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+        
+        // Check if sell GUI is enabled in config
+        if (!plugin.getConfigManager().isEnableSellGui()) {
+            player.sendMessage("§c❌ Sell GUI is currently disabled!");
+            return true;
+        }
+        
         sellGUIListener.openSellGUI(player);
         return true;
     }
