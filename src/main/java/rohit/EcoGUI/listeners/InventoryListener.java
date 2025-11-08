@@ -127,7 +127,7 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        Inventory shopItemsInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, sectionName);
+        Inventory shopItemsInventory = Bukkit.createInventory(new ShopInventoryHolder(null), 54, sectionName + " - " + pageName);
 
         for (Map.Entry<Integer, ShopItem> entry : pageItems.entrySet()) {
             int slot = entry.getKey();
@@ -213,7 +213,7 @@ public class InventoryListener implements Listener {
 
     private void handlePreviousPage(Player player) {
         String title = player.getOpenInventory().getTitle();
-        String sectionName = title.replace("Shop", "");
+        String sectionName = extractSectionNameFromTitle(title);
         String currentPageStr = extractPageFromTitle(title);
 
         int currentPageNum = Integer.parseInt(currentPageStr.replace("page", ""));
@@ -228,7 +228,7 @@ public class InventoryListener implements Listener {
 
     private void handleNextPage(Player player) {
         String title = player.getOpenInventory().getTitle();
-        String sectionName = title.replace("Shop", "");
+        String sectionName = extractSectionNameFromTitle(title);
         String currentPageStr = extractPageFromTitle(title);
 
         int currentPageNum = Integer.parseInt(currentPageStr.replace("page", ""));
@@ -241,6 +241,14 @@ public class InventoryListener implements Listener {
         }
 
         openShopItemsPage(player, sectionName, nextPage);
+    }
+
+    private String extractSectionNameFromTitle(String title) {
+        if (title.contains(" - ")) {
+            String[] parts = title.split(" - ");
+            return parts[0];
+        }
+        return title;
     }
 
     private String extractPageFromTitle(String title) {
