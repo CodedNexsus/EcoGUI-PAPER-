@@ -484,7 +484,16 @@ public class InventoryListener implements Listener {
         else if (slot == 26) delta = -64;
 
         if (delta != 0) {
-            qty = Math.max(1, Math.min(9999, qty + delta));
+            int maxQty = 9999;
+            // Get max buy quantity from config
+            if (plugin instanceof Main) {
+                Main mainPlugin = (Main) plugin;
+                int configMax = mainPlugin.getConfigManager().getMaxBuyQuantity();
+                if (configMax > 0) {
+                    maxQty = configMax;
+                }
+            }
+            qty = Math.max(1, Math.min(maxQty, qty + delta));
             updatePaper(paper, pMeta, qty, unitPrice);
             inv.setItem(4, paper);
             return;
