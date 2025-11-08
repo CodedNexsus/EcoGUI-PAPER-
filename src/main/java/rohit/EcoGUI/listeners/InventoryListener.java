@@ -352,7 +352,7 @@ public class InventoryListener implements Listener {
 
     private void handleItemClick(Player player, int slot) {
         String title = player.getOpenInventory().getTitle();
-        String sectionName = title.replace("Shop", "");
+        String sectionName = extractSectionNameFromTitle(title);
         String currentPageStr = extractPageFromTitle(title);
         Shop shop = plugin.getShopManager().getShop(sectionName);
         if (shop == null) return;
