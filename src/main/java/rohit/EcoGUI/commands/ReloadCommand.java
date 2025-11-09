@@ -26,6 +26,7 @@ public class ReloadCommand implements CommandExecutor {
         plugin.getConfigManager().reloadConfig();
         plugin.getSectionManager().loadSections();
         plugin.getShopManager().loadShops();
+        plugin.getMessageManager().reloadMessages();
 
         player.sendMessage("§a✅ Configuration reloaded successfully!");
         player.sendMessage("§7Plugin Config: §a✅ Reloaded");

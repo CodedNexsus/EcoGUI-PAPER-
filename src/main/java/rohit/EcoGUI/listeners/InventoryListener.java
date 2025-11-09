@@ -378,13 +378,14 @@ public class InventoryListener implements Listener {
         ItemMeta priceMeta = priceDisplay.getItemMeta();
         if (priceMeta != null) {
             priceMeta.setDisplayName("§6Price: §a$" + shopItem.getBuyPrice());
-            priceMeta.getPersistentDataContainer().set(buyQtyKey, PersistentDataType.INTEGER, 1);
+            int minQty = plugin.getConfigManager().getMinBuyQuantity();
+            priceMeta.getPersistentDataContainer().set(buyQtyKey, PersistentDataType.INTEGER, minQty);
             priceMeta.getPersistentDataContainer().set(buyItemKey, PersistentDataType.STRING, shopItem.getMaterial().name());
             priceMeta.getPersistentDataContainer().set(buySectionKey, PersistentDataType.STRING, sectionName);
             priceMeta.getPersistentDataContainer().set(buyPageKey, PersistentDataType.STRING, pageName);
             priceMeta.setLore(java.util.Arrays.asList(
-                "§7Quantity: §e1",
-                "§7Total: §a$" + shopItem.getBuyPrice()
+                "§7Quantity: §e" + minQty,
+                "§7Total: §a$" + (shopItem.getBuyPrice() * minQty)
             ));
             priceDisplay.setItemMeta(priceMeta);
         }
@@ -484,7 +485,7 @@ public class InventoryListener implements Listener {
         else if (slot == 26) delta = -64;
 
         if (delta != 0) {
-            int maxQty = 9999;
+            int maxQty = 0;
             // Get max buy quantity from config
             if (plugin instanceof Main) {
                 Main mainPlugin = (Main) plugin;
@@ -493,7 +494,11 @@ public class InventoryListener implements Listener {
                     maxQty = configMax;
                 }
             }
-            qty = Math.max(1, Math.min(maxQty, qty + delta));
+            if (maxQty == 0) {
+                maxQty = 9999;
+            }
+            int minQty = plugin.getConfigManager().getMinBuyQuantity();
+            qty = Math.max(minQty, Math.min(maxQty, qty + delta));
             updatePaper(paper, pMeta, qty, unitPrice);
             inv.setItem(4, paper);
             return;

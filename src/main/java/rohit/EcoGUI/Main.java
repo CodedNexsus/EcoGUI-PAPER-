@@ -16,7 +16,7 @@ import rohit.EcoGUI.config.ConfigManager;
 import rohit.EcoGUI.listeners.InventoryListener;
 import rohit.EcoGUI.listeners.SellGUIListener;
 import rohit.EcoGUI.section.SectionManager;
-import rohit.EcoGUI.shop.ShopManager;
+import rohit.EcoGUI.helpers.MessageManager;
 
 public class Main extends JavaPlugin {
 
@@ -24,12 +24,15 @@ public class Main extends JavaPlugin {
     private ConfigManager configManager;
     private SectionManager sectionManager;
     private ShopManager shopManager;
+    private MessageManager messageManager;
     private SellGUIListener sellGUIListener;
 
     @Override
     public void onEnable() {
         configManager = new ConfigManager(this);
         configManager.loadOrCreateFolders();
+
+        messageManager = new MessageManager(configManager);
 
         sectionManager = new SectionManager(this, configManager.getSectionsFolder());
         sectionManager.loadSections();
@@ -94,5 +97,9 @@ public class Main extends JavaPlugin {
 
     public ShopManager getShopManager() {
         return shopManager;
+    }
+
+    public MessageManager getMessageManager() {
+        return messageManager;
     }
 }

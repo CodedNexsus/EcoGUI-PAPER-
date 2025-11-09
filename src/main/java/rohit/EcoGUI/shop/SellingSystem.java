@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import rohit.EcoGUI.Main;
-import rohit.EcoGUI.config.ConfigManager;
+import rohit.EcoGUI.helpers.MessageManager;
 
 import java.io.File;
 import java.util.Map;
@@ -20,6 +20,7 @@ public class SellingSystem {
     private Economy economy;
     private ShopManager shopManager;
     private ConfigManager configManager;
+    private MessageManager messageManager;
 
     public SellingSystem(JavaPlugin plugin, Economy economy) {
         this.plugin = plugin;
@@ -28,12 +29,13 @@ public class SellingSystem {
             Main mainPlugin = (Main) plugin;
             this.shopManager = mainPlugin.getShopManager();
             this.configManager = mainPlugin.getConfigManager();
+            this.messageManager = mainPlugin.getMessageManager();
         }
     }
 
     public boolean processSell(Player player, Material material, int amount) {
         if (amount <= 0) {
-            player.sendMessage("§c❌ Amount must be greater than 0!");
+            messageManager.sendMessage(player, "&cAmount must be greater than 0!");
             return false;
         }
         
@@ -45,36 +47,36 @@ public class SellingSystem {
             
             // Check minimum quantity
             if (minSellQuantity > 0 && amount < minSellQuantity) {
-                player.sendMessage("§c❌ Minimum sell quantity is " + minSellQuantity + "!");
-                player.sendMessage("§7You tried to sell: §e" + amount);
+                messageManager.sendMessage(player, "&cMinimum sell quantity is " + minSellQuantity + "!");
+                messageManager.sendMessage(player, "&7You tried to sell: &e" + amount);
                 return false;
             }
             
             // Check maximum quantity
             if (maxSellQuantity > 0 && amount > maxSellQuantity) {
-                player.sendMessage("§c❌ Maximum sell quantity is " + maxSellQuantity + "!");
-                player.sendMessage("§7You tried to sell: §e" + amount);
+                messageManager.sendMessage(player, "&cMaximum sell quantity is " + maxSellQuantity + "!");
+                messageManager.sendMessage(player, "&7You tried to sell: &e" + amount);
                 return false;
             }
         }
 
         int itemCount = countItemInInventory(player, material);
         if (itemCount < amount) {
-            player.sendMessage("§c❌ Insufficient items!");
-            player.sendMessage("§7Need: §e" + amount);
-            player.sendMessage("§7Have: §c" + itemCount);
+            messageManager.sendMessage(player, "&cInsufficient items!");
+            messageManager.sendMessage(player, "&7Need: &e" + amount);
+            messageManager.sendMessage(player, "&7Have: &c" + itemCount);
             return false;
         }
 
         double sellPrice = getItemSellPrice(material);
         
         if (sellPrice < 0) {
-            player.sendMessage("§c❌ This item cannot be sold!");
+            messageManager.sendMessage(player, "&cThis item cannot be sold!");
             return false;
         }
 
         if (sellPrice == 0) {
-            player.sendMessage("§c❌ This item is not configured for selling!");
+            messageManager.sendMessage(player, "&cThis item is not configured for selling!");
             return false;
         }
 
@@ -86,7 +88,7 @@ public class SellingSystem {
 
         if (!response.transactionSuccess()) {
             player.getInventory().addItem(new ItemStack(material, amount));
-            player.sendMessage("§c❌ Transaction failed: " + response.errorMessage);
+            messageManager.sendMessage(player, "&cTransaction failed: " + response.errorMessage);
             return false;
         }
 
@@ -176,19 +178,11 @@ public class SellingSystem {
     }
 
     private void sendSuccessMessage(Player player, Material material, int amount, double totalPrice, double unitPrice) {
-        player.sendMessage("§a✅ Sale successful!");
-        player.sendMessage("§7Item: §e" + material.name());
-        player.sendMessage("§7Quantity: §e" + amount);
-        player.sendMessage("§7Unit Price: §a$" + economy.format(unitPrice));
-        player.sendMessage("§7Total Earned: §a$" + economy.format(totalPrice));
-        player.sendMessage("§7New Balance: §a$" + economy.format(economy.getBalance(player)));
+        messageManager.sendSellMessage(player, material.name(), amount, totalPrice);
     }
 
     private void logTransaction(Player player, Material material, int amount, double totalPrice) {
-        plugin.getLogger().info(
-            player.getName() + " sold " + amount + "x " + material.name() + 
-            " for $" + totalPrice
-        );
+        messageManager.logTransaction(player.getName() + " sold " + amount + "x " + material.name() + " for $" + totalPrice);
     }
 
     public double getPlayerBalance(Player player) {

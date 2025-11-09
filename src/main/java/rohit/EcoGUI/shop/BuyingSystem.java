@@ -6,21 +6,25 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import rohit.EcoGUI.Main;
+import rohit.EcoGUI.helpers.MessageManager;
 
 public class BuyingSystem {
 
     private JavaPlugin plugin;
     private Economy economy;
+    private MessageManager messageManager;
 
     public BuyingSystem(JavaPlugin plugin, Economy economy) {
         this.plugin = plugin;
         this.economy = economy;
+        if (plugin instanceof Main) {
+            this.messageManager = ((Main) plugin).getMessageManager();
+        }
     }
 
     public boolean processBuy(Player player, ShopItem shopItem, int quantity) {
         if (quantity <= 0) {
-            player.sendMessage("§c❌ Quantity must be greater than 0!");
+            messageManager.sendMessage(player, "&cQuantity must be greater than 0!");
             return false;
         }
         
@@ -32,15 +36,15 @@ public class BuyingSystem {
             
             // Check minimum quantity
             if (minBuyQuantity > 0 && quantity < minBuyQuantity) {
-                player.sendMessage("§c❌ Minimum purchase quantity is " + minBuyQuantity + "!");
-                player.sendMessage("§7You tried to buy: §e" + quantity);
+                messageManager.sendMessage(player, "&cMinimum purchase quantity is " + minBuyQuantity + "!");
+                messageManager.sendMessage(player, "&7You tried to buy: &e" + quantity);
                 return false;
             }
             
             // Check maximum quantity
             if (maxBuyQuantity > 0 && quantity > maxBuyQuantity) {
-                player.sendMessage("§c❌ Maximum purchase quantity is " + maxBuyQuantity + "!");
-                player.sendMessage("§7You tried to buy: §e" + quantity);
+                messageManager.sendMessage(player, "&cMaximum purchase quantity is " + maxBuyQuantity + "!");
+                messageManager.sendMessage(player, "&7You tried to buy: &e" + quantity);
                 return false;
             }
         }
@@ -49,16 +53,16 @@ public class BuyingSystem {
 
         if (!canAfford(player, totalPrice)) {
             double playerBalance = economy.getBalance(player);
-            player.sendMessage("§c❌ Insufficient funds!");
-            player.sendMessage("§7Need: §a$" + economy.format(totalPrice));
-            player.sendMessage("§7Have: §c$" + economy.format(playerBalance));
+            messageManager.sendMessage(player, "&cInsufficient funds!");
+            messageManager.sendMessage(player, "&7Need: &a$" + economy.format(totalPrice));
+            messageManager.sendMessage(player, "&7Have: &c$" + economy.format(playerBalance));
             return false;
         }
 
         EconomyResponse withdrawResponse = economy.withdrawPlayer(player, totalPrice);
 
         if (!withdrawResponse.transactionSuccess()) {
-            player.sendMessage("§c❌ Transaction failed: " + withdrawResponse.errorMessage);
+            messageManager.sendMessage(player, "&cTransaction failed: " + withdrawResponse.errorMessage);
             return false;
         }
 
@@ -89,18 +93,11 @@ public class BuyingSystem {
     }
 
     private void sendSuccessMessage(Player player, ShopItem shopItem, int quantity, double totalPrice) {
-        player.sendMessage("§a✅ Purchase successful!");
-        player.sendMessage("§7Item: §e" + shopItem.getMaterial().name());
-        player.sendMessage("§7Quantity: §e" + quantity);
-        player.sendMessage("§7Total Cost: §c$" + economy.format(totalPrice));
-        player.sendMessage("§7New Balance: §a$" + economy.format(economy.getBalance(player)));
+        messageManager.sendPurchaseMessage(player, shopItem.getMaterial().name(), quantity, totalPrice);
     }
 
     private void logTransaction(Player player, ShopItem shopItem, int quantity, double totalPrice) {
-        plugin.getLogger().info(
-            player.getName() + " bought " + quantity + "x " + shopItem.getMaterial().name() + 
-            " for $" + totalPrice
-        );
+        messageManager.logTransaction(player.getName() + " bought " + quantity + "x " + shopItem.getMaterial().name() + " for $" + totalPrice);
     }
 
     public boolean depositMoney(Player player, double amount) {
@@ -135,7 +132,7 @@ public class BuyingSystem {
         }
         
         if (totalDropped > 0) {
-            player.sendMessage("§e⚠️ Inventory full! Dropped " + totalDropped + " items.");
+            messageManager.sendInventoryFullWarning(player);
         }
     }
 }

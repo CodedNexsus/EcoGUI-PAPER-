@@ -169,4 +169,8 @@ public class ConfigManager {
             shopFolder.mkdirs();
         }
     }
+
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
 }
